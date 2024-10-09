@@ -38,7 +38,7 @@ services:
       WEBUI_BUILD_VERSION: ${BUILD_HASH:-dev-build}
       DOCKER: 'true'
     ports:
-      - '8080:8080'
+      - '80:8080'
     volumes:
       - ./data:/app/backend/data
     healthcheck:
