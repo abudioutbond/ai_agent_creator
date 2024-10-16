@@ -21,8 +21,8 @@ services:
       USE_EMBEDDING_MODEL_DOCKER: ${USE_EMBEDDING_MODEL:-sentence-transformers/all-MiniLM-L6-v2}
       USE_RERANKING_MODEL_DOCKER: ${USE_RERANKING_MODEL:-""}
       OLLAMA_BASE_URL: '/ollama'
-      OPENAI_API_BASE_URL: ''
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-""}
+      OPENAI_API_BASE_URL: ${OPENAI_API_BASE_URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
       WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-""}
       SCARF_NO_ANALYTICS: 'true'
       DO_NOT_TRACK: 'true'
@@ -35,9 +35,12 @@ services:
       HF_HOME: '/app/backend/data/cache/embedding/models'
       WEBUI_BUILD_VERSION: ${BUILD_HASH:-dev-build}
       DOCKER: 'true'
-      PIPELINES_BASE_URL: 'http://pipelines:9099'
+      PIPELINES_BASE_URL: ${PIPELINES_API_BASE_URL}
+      PIPELINES_API_KEY: ${PIPELINES_API_KEY}
     ports:
       - '80:8080'
+    volumes:
+      - ./data/webui:/app/backend/data
     healthcheck:
       test: ['CMD', 'curl', '--silent', '--fail', 'http://localhost:8080/health']
       interval: 30s
@@ -60,6 +63,8 @@ services:
       USE_CUDA_DOCKER_VER: ${USE_CUDA_VER:-cu121}
     ports:
       - '9099:9099'
+    volumes:
+      - ./data/pipelines:/app/backend/data
     restart: always
     extra_hosts:
       - 'host.docker.internal:host-gateway'
