@@ -3,7 +3,7 @@ import { browser } from '$app/environment';
 
 export const APP_NAME = 'Open WebUI';
 
-export const WEBUI_BASE_URL = browser ? 'https://ai-backend.outbond.io' : '';
+export const WEBUI_BASE_URL = browser ? 'https://ai.api.outbond.io' : '';
 export const WEBUI_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1`;
 
 export const OLLAMA_API_BASE_URL = `${WEBUI_BASE_URL}/ollama`;
