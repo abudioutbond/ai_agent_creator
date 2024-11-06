@@ -1,0 +1,96 @@
+# Use Python 3.11-slim as the base image
+FROM python:3.11-slim-bookworm
+
+# Build arguments for optional features
+ARG USE_CUDA=false
+ARG USE_CUDA_VER=cu121
+ARG USE_OLLAMA=false
+ARG USE_EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
+ARG USE_RERANKING_MODEL=""
+ARG BUILD_HASH=dev-build
+ARG UID=0
+ARG GID=0
+
+# Set environment variables
+ENV ENV=prod \
+    PORT=8080 \
+    USE_OLLAMA_DOCKER=${USE_OLLAMA} \
+    USE_CUDA_DOCKER=${USE_CUDA} \
+    USE_CUDA_DOCKER_VER=${USE_CUDA_VER} \
+    USE_EMBEDDING_MODEL_DOCKER=${USE_EMBEDDING_MODEL} \
+    USE_RERANKING_MODEL_DOCKER=${USE_RERANKING_MODEL} \
+    OLLAMA_BASE_URL="/ollama" \
+    OPENAI_API_BASE_URL="https://api.openai.com/v1" \
+    OPENAI_API_KEY="" \
+    WEBUI_SECRET_KEY="t0p-s3cr3t" \
+    SCARF_NO_ANALYTICS=true \
+    DO_NOT_TRACK=true \
+    ANONYMIZED_TELEMETRY=false \
+    WHISPER_MODEL="base" \
+    WHISPER_MODEL_DIR="/app/backend/data/cache/whisper/models" \
+    RAG_EMBEDDING_MODEL="${USE_EMBEDDING_MODEL}" \
+    RAG_RERANKING_MODEL="${USE_RERANKING_MODEL}" \
+    SENTENCE_TRANSFORMERS_HOME="/app/backend/data/cache/embedding/models" \
+    HF_HOME="/app/backend/data/cache/embedding/models" \
+    WEBUI_BUILD_VERSION=${BUILD_HASH} \
+    DOCKER=true
+
+# Set working directory to /app/backend
+WORKDIR /app/backend
+
+# Create user and group if not root
+RUN if [ $UID -ne 0 ]; then \
+      if [ $GID -ne 0 ]; then \
+        addgroup --gid $GID app; \
+      fi; \
+      adduser --uid $UID --gid $GID --home /app --disabled-password --no-create-home app; \
+    fi
+
+# Install system dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      git \
+      curl \
+      jq \
+      netcat-openbsd \
+      gcc \
+      python3-dev \
+      ffmpeg \
+      libsm6 \
+      libxext6 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install OLLAMA if required
+RUN if [ "$USE_OLLAMA" = "true" ]; then \
+      curl -fsSL https://ollama.com/install.sh | sh; \
+    fi
+
+# Copy and install Python dependencies
+COPY backend/requirements.txt ./requirements.txt
+RUN pip3 install uvicorn && \
+    if [ "$USE_CUDA" = "true" ]; then \
+      pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/${USE_CUDA_VER} && \
+      pip3 install -r requirements.txt; \
+    else \
+      pip3 install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu && \
+      pip3 install -r requirements.txt; \
+    fi
+
+# Copy the backend source code
+COPY backend/ /app/backend
+
+# Copy CHANGELOG.md into /app
+COPY CHANGELOG.md /app/CHANGELOG.md
+
+# Change ownership if not running as root
+RUN chown -R $UID:$GID /app
+
+# Expose the backend port
+EXPOSE 8080
+
+# Set the user
+USER $UID:$GID
+
+# Start the FastAPI application using Uvicorn
+CMD ["uvicorn", "open_webui.main:app", "--host", "0.0.0.0", "--port", "8080"]

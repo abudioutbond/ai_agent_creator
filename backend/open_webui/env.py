@@ -10,6 +10,9 @@ from pathlib import Path
 import markdown
 from bs4 import BeautifulSoup
 from open_webui.constants import ERROR_MESSAGES
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 ####################################
 # Load .env file
@@ -99,13 +102,11 @@ for source in log_sources:
 log.setLevel(SRC_LOG_LEVELS["CONFIG"])
 
 
-WEBUI_NAME = os.environ.get("WEBUI_NAME", "Open WebUI")
-if WEBUI_NAME != "Open WebUI":
-    WEBUI_NAME += " (Open WebUI)"
+WEBUI_NAME = os.environ.get("WEBUI_NAME", "Outbond AI")
 
 WEBUI_URL = os.environ.get("WEBUI_URL", "http://localhost:3000")
 
-WEBUI_FAVICON_URL = "https://openwebui.com/favicon.png"
+WEBUI_FAVICON_URL = f"{WEBUI_URL}/static/favicon.svg"
 
 
 ####################################
@@ -230,6 +231,8 @@ if FROM_INIT_PY:
     DATA_DIR = Path(os.getenv("DATA_DIR", OPEN_WEBUI_DIR / "data"))
 
 
+STATIC_DIR = Path(os.getenv("STATIC_DIR", OPEN_WEBUI_DIR / "static"))
+
 FONTS_DIR = Path(os.getenv("FONTS_DIR", OPEN_WEBUI_DIR / "static" / "fonts"))
 
 FRONTEND_BUILD_DIR = Path(os.getenv("FRONTEND_BUILD_DIR", BASE_DIR / "build")).resolve()
@@ -252,7 +255,7 @@ if os.path.exists(f"{DATA_DIR}/ollama.db"):
 else:
     pass
 
-DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DATA_DIR}/webui.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", "postgres://postgres.your-tenant-id:OutBondToTheMoon@54.92.150.94:6543/postgres")
 
 # Replace the postgres:// with postgresql://
 if "postgres://" in DATABASE_URL:
@@ -303,6 +306,12 @@ RESET_CONFIG_ON_START = (
 )
 
 ####################################
+# REDIS
+####################################
+
+REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+
+####################################
 # WEBUI_AUTH (Required for security)
 ####################################
 
@@ -343,8 +352,7 @@ ENABLE_WEBSOCKET_SUPPORT = (
 
 WEBSOCKET_MANAGER = os.environ.get("WEBSOCKET_MANAGER", "")
 
-WEBSOCKET_REDIS_URL = os.environ.get("WEBSOCKET_REDIS_URL", "redis://localhost:6379/0")
-
+WEBSOCKET_REDIS_URL = os.environ.get("WEBSOCKET_REDIS_URL", REDIS_URL)
 
 AIOHTTP_CLIENT_TIMEOUT = os.environ.get("AIOHTTP_CLIENT_TIMEOUT", "")
 
@@ -355,3 +363,23 @@ else:
         AIOHTTP_CLIENT_TIMEOUT = int(AIOHTTP_CLIENT_TIMEOUT)
     except Exception:
         AIOHTTP_CLIENT_TIMEOUT = 300
+
+AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST = os.environ.get(
+    "AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST", "3"
+)
+
+if AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST == "":
+    AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST = None
+else:
+    try:
+        AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST = int(
+            AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST
+        )
+    except Exception:
+        AIOHTTP_CLIENT_TIMEOUT_OPENAI_MODEL_LIST = 3
+
+####################################
+# OFFLINE_MODE
+####################################
+
+OFFLINE_MODE = os.environ.get("OFFLINE_MODE", "false").lower() == "true"

@@ -50,7 +50,6 @@
 							placement="right"
 						>
 							<img
-								crossorigin="anonymous"
 								src={model?.info?.meta?.profile_image_url ??
 									($i18n.language === 'dg-DG'
 										? `/doge.png`
@@ -82,8 +81,8 @@
 		>
 			<div>
 				<div class=" capitalize line-clamp-1" in:fade={{ duration: 200 }}>
-					{#if models[selectedModelIdx]?.info}
-						{models[selectedModelIdx]?.info?.name}
+					{#if models[selectedModelIdx]?.name}
+						{models[selectedModelIdx]?.name}
 					{:else}
 						{$i18n.t('Hello, {{name}}', { name: $user.name })}
 					{/if}

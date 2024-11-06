@@ -8,6 +8,20 @@ from open_webui.env import SRC_LOG_LEVELS
 from pydantic import BaseModel
 from sqlalchemy import Boolean, Column, String, Text
 from open_webui.utils.utils import verify_password
+import requests
+import json
+import os
+from dotenv import load_dotenv
+
+# Get the .env file
+current_file_path = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_file_path, '../../../'))
+env_path = os.path.join(project_root, '.env')
+load_dotenv(dotenv_path=env_path)
+
+SUPABASE_API_KEY = os.getenv('SUPABASE_API_KEY')
+SUPABASE_AUTH_URL = os.getenv('SUPABASE_AUTH_URL')
+SUPABASE_USERS_UPDATE_URL = os.getenv('SUPABASE_USERS_UPDATE_URL')
 
 log = logging.getLogger(__name__)
 log.setLevel(SRC_LOG_LEVELS["MODELS"])
@@ -102,22 +116,68 @@ class AuthsTable:
         with get_db() as db:
             log.info("insert_new_auth")
 
+            # Generate UUID for the new user
             id = str(uuid.uuid4())
 
+            # Create the auth model
             auth = AuthModel(
                 **{"id": id, "email": email, "password": password, "active": True}
             )
+            # Insert auth into the database
             result = Auth(**auth.model_dump())
             db.add(result)
 
+            # Insert new user record
             user = Users.insert_new_user(
                 id, name, email, profile_image_url, role, oauth_sub
             )
-
+            # Commit
             db.commit()
             db.refresh(result)
 
             if result and user:
+                # First signup is successful, now make the second signup request using requests.post
+                payload = {
+                    "email": email,
+                    "password": password,
+                    "data": {
+                            "display_name": name,
+                            "email": email
+                        }
+                }
+                headers = {
+                    "apikey": SUPABASE_API_KEY,
+                    "Content-Type": "application/json"
+                }
+                
+                response = requests.post(SUPABASE_AUTH_URL, headers=headers, data=json.dumps(payload))
+
+                if response.status_code == 200:
+                    log.info("Second signup successful")
+                    second_signup_data = response.json()
+
+                    if "id" in second_signup_data:
+                        second_user_id = second_signup_data["id"]
+
+                        # Update public.users table with the second ID obtained from the second signup
+                        update_url = SUPABASE_USERS_UPDATE_URL.format(email)
+                        update_payload = {"ai_id": second_user_id}
+                        update_headers = {
+                            "apikey": SUPABASE_API_KEY,
+                            "Authorization": f"Bearer {SUPABASE_API_KEY}",
+                            "Content-Type": "application/json",
+                        }
+
+                        update_response = requests.patch(update_url, headers=update_headers, data=json.dumps(update_payload))
+
+                        if update_response.status_code == 204:
+                            log.info(f"User {email} successfully updated with ai_id {second_user_id}")
+                        else:
+                            log.error(f"Failed to update user {email} with ai_id. Status: {update_response.status_code}, Response: {update_response.text}")
+
+                else:
+                    log.error(f"Second signup request failed. Status: {response.status_code}, Response: {response.text}")
+                
                 return user
             else:
                 return None

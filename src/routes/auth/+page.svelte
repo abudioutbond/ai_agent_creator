@@ -108,12 +108,7 @@
 	<div class="fixed m-10 z-50">
 		<div class="flex space-x-2">
 			<div class=" self-center">
-				<img
-					crossorigin="anonymous"
-					src="{WEBUI_BASE_URL}/static/favicon.png"
-					class=" w-8 rounded-full"
-					alt="logo"
-				/>
+				<img src="{WEBUI_BASE_URL}/static/favicon.png" class=" w-8 rounded-full" alt="logo" />
 			</div>
 		</div>
 	</div>
@@ -168,9 +163,7 @@
 							{#if mode === 'signup'}
 								<div class=" mt-1 text-xs font-medium text-gray-500">
 									ⓘ {$WEBUI_NAME}
-									{$i18n.t(
-										'does not make any external connections, and your data stays securely on your locally hosted server.'
-									)}
+									{$i18n.t('is a part of outbond.io')}
 								</div>
 							{/if}
 						</div>

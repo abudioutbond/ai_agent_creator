@@ -1,10 +1,27 @@
-import { browser } from '$app/environment';
+import { browser, dev } from '$app/environment';
 // import { version } from '../../package.json';
+const dev = import.meta.env.MODE === 'development';
 
-export const APP_NAME = 'Open WebUI';
+export const APP_NAME = 'Outbond AI';
+// WEBUI_BASE_URL definition (this might already be in place, but here it is for clarity):
+export const WEBUI_HOSTNAME = browser
+	? dev
+		? `${location.hostname}:8080`
+		: 'ai.api.outbond.io'
+	: '';
 
-export const WEBUI_BASE_URL = browser ? 'https://ai.api.outbond.io' : '';
-export const WEBUI_API_BASE_URL = `${WEBUI_BASE_URL}/api/v1`;
+export const WEBUI_BASE_URL = browser
+	? dev
+		? `http://${WEBUI_HOSTNAME}`
+		: `https://${WEBUI_HOSTNAME}`
+	: '';
+
+// Add the WEBUI_API_BASE_URL export (this is the one with the missing export error)
+export const WEBUI_API_BASE_URL = browser
+	? dev
+		? `http://localhost:8080/api`
+		: 'https://ai.api.outbond.io/api'
+	: '';
 
 export const OLLAMA_API_BASE_URL = `${WEBUI_BASE_URL}/ollama`;
 export const OPENAI_API_BASE_URL = `${WEBUI_BASE_URL}/openai`;
