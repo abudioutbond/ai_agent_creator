@@ -1,7 +1,5 @@
 import { browser, dev } from '$app/environment';
 // import { version } from '../../package.json';
-const dev = import.meta.env.MODE === 'development';
-
 export const APP_NAME = 'Outbond AI';
 // WEBUI_BASE_URL definition (this might already be in place, but here it is for clarity):
 export const WEBUI_HOSTNAME = browser
