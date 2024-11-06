@@ -838,17 +838,17 @@ def validate_cors_origin(origin):
 # in your .env file depending on your frontend port, 5173 in this case.
 #CORS_ALLOW_ORIGIN = os.environ.get("CORS_ALLOW_ORIGIN", "*").split(";")
 # Development enviroment values
-# CORS_ALLOW_ORIGIN= [
-#     "http://localhost:5173",
-#     "http://localhost:8080"
-# ]
-
-CORS_ALLOW_ORIGIN = [
-    "https://outbond.io", 
-    "https://ai.outbond.io", 
-    "https://ai.api.outbond.io", 
-    # Add other subdomains if needed
+CORS_ALLOW_ORIGIN= [
+    "http://localhost:5173",
+    "http://localhost:8080"
 ]
+
+# CORS_ALLOW_ORIGIN = [
+#     "https://outbond.io", 
+#     "https://ai.outbond.io", 
+#     "https://ai.api.outbond.io", 
+#     # Add other subdomains if needed
+# ]
 
 
 if "*" in CORS_ALLOW_ORIGIN:

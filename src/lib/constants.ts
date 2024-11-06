@@ -17,8 +17,8 @@ export const WEBUI_BASE_URL = browser
 // Add the WEBUI_API_BASE_URL export (this is the one with the missing export error)
 export const WEBUI_API_BASE_URL = browser
 	? dev
-		? `http://localhost:8080/api`
-		: 'https://ai.api.outbond.io/api'
+		? `http://localhost:8080/api/v1`
+		: 'https://ai.api.outbond.io/api/v1'
 	: '';
 
 export const OLLAMA_API_BASE_URL = `${WEBUI_BASE_URL}/ollama`;
